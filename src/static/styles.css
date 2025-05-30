@@ -1,0 +1,119 @@
+/* Estilos para o Painel de Sessão de RPG (D&D 5e) */
+
+/* Estilos gerais */
+body {
+    background-color: #f5f5f5;
+}
+
+.container-fluid {
+    max-width: 1400px;
+}
+
+/* Estilos para os cartões de personagens */
+.character-card {
+    height: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.character-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Estilos para os slots de magia */
+.spell-slots-container {
+    margin-bottom: 10px;
+}
+
+.spell-slot, .ability-use, .spell-stone-use {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.spell-slot.active, .ability-use.active, .spell-stone-use.active {
+    background-color: #198754;
+    color: white;
+    border-color: #198754;
+}
+
+/* Animação de pulso para feedback visual */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pulse {
+    animation: pulse 0.5s ease;
+}
+
+/* Estilos específicos para cada classe */
+/* Melissa - Ladina/Clériga */
+.bg-info {
+    background-color: #17a2b8 !important;
+}
+
+/* Escanor - Clérigo */
+.bg-warning {
+    background-color: #ffc107 !important;
+}
+
+/* Sinbad - Artífice */
+.bg-primary {
+    background-color: #0d6efd !important;
+}
+
+/* Emberíth - Mago */
+.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+/* Duromak - Bárbaro/Druida */
+.bg-success {
+    background-color: #198754 !important;
+}
+
+/* Milenaus - Guerreiro */
+.bg-secondary {
+    background-color: #6c757d !important;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    .spell-slot, .ability-use, .spell-stone-use {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+    
+    .card-header h3 {
+        font-size: 1rem;
+    }
+}
+
+/* Botões de ação */
+#saveDataBtn, #updateServerDataBtn {
+    padding: 10px 20px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+#saveDataBtn:hover, #updateServerDataBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Mensagem de servidor */
+#serverMessage {
+    transition: all 0.3s ease;
+}

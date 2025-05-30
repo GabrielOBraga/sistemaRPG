@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Personagem - Painel de RPG</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- CSS Customizado -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Bootstrap JS Bundle com Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <div class="container py-4">
+        <h1 class="text-center mb-4">Cadastro de Personagem</h1>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h2 class="h4 mb-0">Informações Básicas</h2>
+            </div>
+            <div class="card-body">
+                <form id="characterForm" action="{{ url_for('save_character') }}" method="POST">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="characterName" class="form-label">Nome do Personagem</label>
+                            <input type="text" class="form-control" id="characterName" name="name" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="characterHP" class="form-label">Pontos de Vida (HP)</label>
+                            <input type="number" class="form-control" id="characterHP" name="hp" min="1" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="characterAC" class="form-label">Classe de Armadura (CA)</label>
+                            <input type="number" class="form-control" id="characterAC" name="ac" min="1" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Inspiração</label>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="characterInspiration" name="inspiration">
+                                <label class="form-check-label" for="characterInspiration">Ativa</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="characterNotes" class="form-label">Anotações</label>
+                            <textarea class="form-control" id="characterNotes" name="notes" rows="2" placeholder="Magias preparadas, habilidades, etc..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="cardColor" class="form-label">Cor do Card</label>
+                            <select class="form-select" id="cardColor" name="card_color">
+                                <option value="primary">Azul (Artífice)</option>
+                                <option value="info">Azul Claro (Ladino)</option>
+                                <option value="success">Verde (Bárbaro/Druida)</option>
+                                <option value="warning">Amarelo (Clérigo)</option>
+                                <option value="danger">Vermelho (Mago)</option>
+                                <option value="secondary">Cinza (Guerreiro)</option>
+                                <option value="dark">Preto</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="textColor" class="form-label">Cor do Texto</label>
+                            <select class="form-select" id="textColor" name="text_color">
+                                <option value="white">Branco</option>
+                                <option value="dark">Preto</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Slots de Magia -->
+                    <h3 class="h5 mb-3">Slots de Magia</h3>
+                    
+                    <div id="spellSlotsContainer">
+                        <div class="row mb-3 spell-level-row">
+                            <div class="col-md-2">
+                                <label class="form-label">Nível</label>
+                                <select class="form-select spell-level-select">
+                                    <option value="level1">Nível 1</option>
+                                    <option value="level2">Nível 2</option>
+                                    <option value="level3">Nível 3</option>
+                                    <option value="level4">Nível 4</option>
+                                    <option value="level5">Nível 5</option>
+                                    <option value="level6">Nível 6</option>
+                                    <option value="level7">Nível 7</option>
+                                    <option value="level8">Nível 8</option>
+                                    <option value="level9">Nível 9</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Quantidade</label>
+                                <input type="number" class="form-control spell-slot-quantity" min="1" max="10" value="4">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-success add-spell-level mb-3">
+                                    <i class="bi bi-plus-circle"></i> Adicionar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="spellLevelsList" class="mb-4">
+                        <!-- Aqui serão listados os níveis de magia adicionados -->
+                        <p class="text-muted">Nenhum nível de magia adicionado.</p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Habilidades -->
+                    <h3 class="h5 mb-3">Habilidades</h3>
+                    
+                    <div id="abilitiesContainer">
+                        <div class="row mb-3 ability-row">
+                            <div class="col-md-4">
+                                <label class="form-label">Nome da Habilidade</label>
+                                <input type="text" class="form-control ability-name" placeholder="Ex: Canalizar Divindade">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Usos</label>
+                                <input type="number" class="form-control ability-uses" min="1" max="10" value="1">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-success add-ability mb-3">
+                                    <i class="bi bi-plus-circle"></i> Adicionar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="abilitiesList" class="mb-4">
+                        <!-- Aqui serão listadas as habilidades adicionadas -->
+                        <p class="text-muted">Nenhuma habilidade adicionada.</p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Pedra de Armazenamento de Magia (Específico para Artífice) -->
+                    <div class="mb-4">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="hasSpellStone" name="has_spell_stone">
+                            <label class="form-check-label" for="hasSpellStone">
+                                Possui Pedra de Armazenamento de Magia (Artífice)
+                            </label>
+                        </div>
+                        
+                        <div id="spellStoneContainer" class="d-none">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="spellStoneName" class="form-label">Nome da Magia Padrão</label>
+                                    <input type="text" class="form-control" id="spellStoneName" name="spell_stone_name" placeholder="Ex: Bola de Fogo">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="spellStoneUses" class="form-label">Quantidade de Usos</label>
+                                    <input type="number" class="form-control" id="spellStoneUses" name="spell_stone_uses" min="1" max="10" value="10">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-primary btn-lg me-2">
+                                <i class="bi bi-save"></i> Salvar Personagem
+                            </button>
+                            <a href="{{ url_for('index') }}" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Campos ocultos para armazenar os dados JSON -->
+                    <input type="hidden" id="slotsJSON" name="slots_json" value="{}">
+                    <input type="hidden" id="abilitiesJSON" name="abilities_json" value="{}">
+                    <input type="hidden" id="spellStoneJSON" name="spell_stone_json" value="{}">
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar listeners para todos os elementos interativos
+            setupEventListeners();
+        });
+        
+        // Função para configurar todos os event listeners
+        function setupEventListeners() {
+            // Event listener para o botão de adicionar nível de magia
+            document.querySelector('.add-spell-level').addEventListener('click', addSpellLevel);
+            
+            // Event listener para o botão de adicionar habilidade
+            document.querySelector('.add-ability').addEventListener('click', addAbility);
+            
+            // Event listener para o checkbox de pedra de armazenamento
+            document.getElementById('hasSpellStone').addEventListener('change', toggleSpellStoneContainer);
+            
+            // Event listener para o formulário
+            document.getElementById('characterForm').addEventListener('submit', prepareFormData);
+        }
+        
+        // Função para adicionar um nível de magia à lista
+        function addSpellLevel() {
+            const levelSelect = document.querySelector('.spell-level-select');
+            const quantityInput = document.querySelector('.spell-slot-quantity');
+            
+            const level = levelSelect.value;
+            const levelText = levelSelect.options[levelSelect.selectedIndex].text;
+            const quantity = parseInt(quantityInput.value);
+            
+            if (!level || quantity < 1) {
+                alert('Por favor, selecione um nível de magia e uma quantidade válida.');
+                return;
+            }
+            
+            // Verificar se o nível já foi adicionado
+            const existingLevel = document.querySelector(`[data-level="${level}"]`);
+            if (existingLevel) {
+                alert(`O ${levelText} já foi adicionado. Remova-o primeiro se deseja alterá-lo.`);
+                return;
+            }
+            
+            // Remover a mensagem de "nenhum nível adicionado"
+            const emptyMessage = document.querySelector('#spellLevelsList p.text-muted');
+            if (emptyMessage) {
+                emptyMessage.remove();
+            }
+            
+            // Criar o elemento de nível de magia
+            const levelElement = document.createElement('div');
+            levelElement.className = 'alert alert-info d-flex justify-content-between align-items-center';
+            levelElement.setAttribute('data-level', level);
+            levelElement.innerHTML = `
+                <span><strong>${levelText}:</strong> ${quantity} slots</span>
+                <button type="button" class="btn btn-sm btn-danger remove-spell-level">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+            
+            // Adicionar o elemento à lista
+            document.getElementById('spellLevelsList').appendChild(levelElement);
+            
+            // Adicionar event listener para o botão de remover
+            levelElement.querySelector('.remove-spell-level').addEventListener('click', function() {
+                levelElement.remove();
+                
+                // Se não houver mais níveis, mostrar a mensagem de "nenhum nível adicionado"
+                if (document.querySelectorAll('#spellLevelsList [data-level]').length === 0) {
+                    const emptyMessage = document.createElement('p');
+                    emptyMessage.className = 'text-muted';
+                    emptyMessage.textContent = 'Nenhum nível de magia adicionado.';
+                    document.getElementById('spellLevelsList').appendChild(emptyMessage);
+                }
+                
+                // Atualizar o JSON de slots
+                updateSlotsJSON();
+            });
+            
+            // Atualizar o JSON de slots
+            updateSlotsJSON();
+            
+            // Limpar os campos
+            quantityInput.value = 4;
+        }
+        
+        // Função para adicionar uma habilidade à lista
+        function addAbility() {
+            const nameInput = document.querySelector('.ability-name');
+            const usesInput = document.querySelector('.ability-uses');
+            
+            const name = nameInput.value.trim();
+            const uses = parseInt(usesInput.value);
+            
+            if (!name || uses < 1) {
+                alert('Por favor, insira um nome de habilidade e uma quantidade de usos válida.');
+                return;
+            }
+            
+            // Criar um ID para a habilidade (nome em camelCase)
+            const abilityId = name.toLowerCase()
+                .replace(/[^\w\s]/gi, '')
+                .replace(/\s+(.)/g, function(match, group1) {
+                    return group1.toUpperCase();
+                });
+            
+            // Verificar se a habilidade já foi adicionada
+            const existingAbility = document.querySelector(`[data-ability="${abilityId}"]`);
+            if (existingAbility) {
+                alert(`A habilidade "${name}" já foi adicionada. Remova-a primeiro se deseja alterá-la.`);
+                return;
+            }
+            
+            // Remover a mensagem de "nenhuma habilidade adicionada"
+            const emptyMessage = document.querySelector('#abilitiesList p.text-muted');
+            if (emptyMessage) {
+                emptyMessage.remove();
+            }
+            
+            // Criar o elemento de habilidade
+            const abilityElement = document.createElement('div');
+            abilityElement.className = 'alert alert-primary d-flex justify-content-between align-items-center';
+            abilityElement.setAttribute('data-ability', abilityId);
+            abilityElement.setAttribute('data-name', name);
+            abilityElement.setAttribute('data-uses', uses);
+            abilityElement.innerHTML = `
+                <span><strong>${name}:</strong> ${uses} usos</span>
+                <button type="button" class="btn btn-sm btn-danger remove-ability">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+            
+            // Adicionar o elemento à lista
+            document.getElementById('abilitiesList').appendChild(abilityElement);
+            
+            // Adicionar event listener para o botão de remover
+            abilityElement.querySelector('.remove-ability').addEventListener('click', function() {
+                abilityElement.remove();
+                
+                // Se não houver mais habilidades, mostrar a mensagem de "nenhuma habilidade adicionada"
+                if (document.querySelectorAll('#abilitiesList [data-ability]').length === 0) {
+                    const emptyMessage = document.createElement('p');
+                    emptyMessage.className = 'text-muted';
+                    emptyMessage.textContent = 'Nenhuma habilidade adicionada.';
+                    document.getElementById('abilitiesList').appendChild(emptyMessage);
+                }
+                
+                // Atualizar o JSON de habilidades
+                updateAbilitiesJSON();
+            });
+            
+            // Atualizar o JSON de habilidades
+            updateAbilitiesJSON();
+            
+            // Limpar os campos
+            nameInput.value = '';
+            usesInput.value = 1;
+        }
+        
+        // Função para mostrar/ocultar o container da pedra de armazenamento
+        function toggleSpellStoneContainer() {
+            const hasSpellStone = document.getElementById('hasSpellStone').checked;
+            const spellStoneContainer = document.getElementById('spellStoneContainer');
+            
+            if (hasSpellStone) {
+                spellStoneContainer.classList.remove('d-none');
+            } else {
+                spellStoneContainer.classList.add('d-none');
+            }
+            
+            // Atualizar o JSON da pedra de armazenamento
+            updateSpellStoneJSON();
+        }
+        
+        // Função para atualizar o JSON de slots
+        function updateSlotsJSON() {
+            const slots = {};
+            
+            // Obter todos os níveis de magia adicionados
+            const levelElements = document.querySelectorAll('#spellLevelsList [data-level]');
+            
+            levelElements.forEach(element => {
+                const level = element.getAttribute('data-level');
+                const quantity = parseInt(element.querySelector('span').textContent.match(/(\d+)/)[0]);
+                
+                // Criar um array de slots (todos inicialmente false)
+                slots[level] = Array(quantity).fill(false);
+            });
+            
+            // Atualizar o campo oculto
+            document.getElementById('slotsJSON').value = JSON.stringify(slots);
+        }
+        
+        // Função para atualizar o JSON de habilidades
+        function updateAbilitiesJSON() {
+            const abilities = {};
+            
+            // Obter todas as habilidades adicionadas
+            const abilityElements = document.querySelectorAll('#abilitiesList [data-ability]');
+            
+            abilityElements.forEach(element => {
+                const abilityId = element.getAttribute('data-ability');
+                const uses = parseInt(element.getAttribute('data-uses'));
+                
+                // Criar um array de usos (todos inicialmente false)
+                abilities[abilityId] = Array(uses).fill(false);
+            });
+            
+            // Atualizar o campo oculto
+            document.getElementById('abilitiesJSON').value = JSON.stringify(abilities);
+        }
+        
+        // Função para atualizar o JSON da pedra de armazenamento
+        function updateSpellStoneJSON() {
+            const hasSpellStone = document.getElementById('hasSpellStone').checked;
+            
+            if (hasSpellStone) {
+                const spellStoneName = document.getElementById('spellStoneName').value;
+                const spellStoneUses = parseInt(document.getElementById('spellStoneUses').value);
+                
+                const spellStone = {
+                    spellName: spellStoneName,
+                    uses: Array(spellStoneUses).fill(false)
+                };
+                
+                // Atualizar o campo oculto
+                document.getElementById('spellStoneJSON').value = JSON.stringify(spellStone);
+            } else {
+                // Limpar o campo oculto
+                document.getElementById('spellStoneJSON').value = JSON.stringify({});
+            }
+        }
+        
+        // Função para preparar os dados do formulário antes do envio
+        function prepareFormData(event) {
+            // Atualizar todos os JSONs
+            updateSlotsJSON();
+            updateAbilitiesJSON();
+            updateSpellStoneJSON();
+            
+            // Continuar com o envio do formulário
+            return true;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Sessão de RPG (D&D 5e)</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- CSS Customizado -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Bootstrap JS Bundle com Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <h1 class="text-center mb-4">Painel de Sessão de RPG (D&D 5e)</h1>
+        
+        <!-- Painel da Sessão -->
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h2 class="h4 mb-0">Painel da Sessão</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="sessionNumber" class="form-label">Nº da Sessão</label>
+                        <input type="number" class="form-control" id="sessionNumber" min="1" value="1">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="sessionDate" class="form-label">Data</label>
+                        <input type="date" class="form-control" id="sessionDate">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="floorName" class="form-label">Nome do Andar</label>
+                        <input type="text" class="form-control" id="floorName" placeholder="Ex: Calabouço do Dragão">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="sessionHistory" class="form-label">Histórico</label>
+                        <select class="form-select" id="sessionHistory">
+                            <option selected value="">Selecione uma sessão anterior</option>
+                            <!-- Opções serão preenchidas dinamicamente -->
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="sessionNotes" class="form-label">Anotações</label>
+                        <textarea class="form-control" id="sessionNotes" rows="3" placeholder="Anotações da sessão atual..."></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <button id="saveDataBtn" class="btn btn-success btn-lg me-2">
+                            <i class="bi bi-download"></i> Salvar Dados (Download)
+                        </button>
+                        <button id="newSessionBtn" class="btn btn-info btn-lg me-2">
+                            <i class="bi bi-plus-circle"></i> Iniciar Nova Sessão
+                        </button>
+                        <button id="updateServerDataBtn" class="btn btn-primary btn-lg me-2">
+                            <i class="bi bi-cloud-upload"></i> Atualizar Dados (Servidor)
+                        </button>
+                        <button id="longRestBtn" class="btn btn-warning btn-lg">
+                            <i class="bi bi-moon-stars"></i> Descanso Longo
+                        </button>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div id="serverMessage" class="alert d-none" role="alert">
+                            <!-- Mensagem de feedback será exibida aqui -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Modal para exibir detalhes da sessão histórica -->
+                <div class="modal fade" id="historySessionModal" tabindex="-1" aria-labelledby="historySessionModalTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-info text-white">
+                                <h5 class="modal-title" id="historySessionModalTitle">Detalhes da Sessão</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <strong>Número da Sessão:</strong>
+                                        <p id="modalSessionNumber"></p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Data:</strong>
+                                        <p id="modalSessionDate"></p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Andar:</strong>
+                                        <p id="modalFloorName"></p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <strong>Anotações:</strong>
+                                        <div class="border p-3 bg-light rounded" id="modalSessionNotes" style="min-height: 150px; white-space: pre-wrap;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                <button type="button" class="btn btn-primary" id="loadSessionBtn">Carregar Esta Sessão</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cartões de Personagens (Gerados Dinamicamente) -->
+        <div class="row" id="charactersContainer">
+            {% for character in characters %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card character-card">
+                    <div class="card-header bg-{{ character.card_color|default('secondary') }} text-{{ character.text_color|default('white') }} d-flex justify-content-between align-items-center">
+                        <h3 class="h5 mb-0">{{ character.name }}</h3>
+                        <a href="{{ url_for('edit_character', character_id=character.id) }}" class="btn btn-sm btn-light">
+                            <i class="bi bi-pencil-square"></i> Editar
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <label for="{{ character.name|lower }}HP" class="form-label">PV</label>
+                                <input type="number" class="form-control" id="{{ character.name|lower }}HP" min="0" value="{{ character.hp }}">
+                            </div>
+                            <div class="col-4">
+                                <label for="{{ character.name|lower }}AC" class="form-label">CA</label>
+                                <input type="number" class="form-control" id="{{ character.name|lower }}AC" min="0" value="{{ character.ac }}">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label">Inspiração</label>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="{{ character.name|lower }}Inspiration" {% if character.inspiration %}checked{% endif %}>
+                                    <label class="form-check-label" for="{{ character.name|lower }}Inspiration">Ativa</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Slots de Magia (Gerados Dinamicamente) -->
+                        {% if character.slots and character.slots|length > 0 %}
+                        <div class="mb-3">
+                            <label class="form-label">Slots de Magia</label>
+                            <div class="spell-slots-container">
+                                {% for level_name, slots in character.slots.items() %}
+                                <div class="mb-2">
+                                    <small>{{ level_name|replace('level', 'Nível ')|capitalize }}:</small>
+                                    <div class="d-flex flex-wrap">
+                                        {% for i in range(slots|length) %}
+                                        <button class="btn btn-outline-success spell-slot me-1 mb-1" 
+                                                data-character="{{ character.name|lower }}" 
+                                                data-level="{{ level_name|replace('level', '') }}" 
+                                                data-slot="{{ i }}">
+                                            {% if level_name.startswith('level') %}
+                                                {{ i + 1 }}
+                                            {% else %}
+                                                {{ level_name }}
+                                            {% endif %}
+                                        </button>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Pedra de Armazenamento de Magia (Específico para Sinbad) -->
+                        {% if character.spellStone is defined %}
+                        <div class="mb-3">
+                            <label class="form-label">Pedra de Armazenamento de Magia</label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" id="{{ character.name|lower }}SpellStoneName" placeholder="Nome da magia" value="{{ character.spellStone.spellName }}">
+                            </div>
+                            <div class="d-flex flex-wrap">
+                                {% for i in range(character.spellStone.uses|length) %}
+                                <button class="btn btn-outline-info spell-stone-use me-1 mb-1" 
+                                        data-character="{{ character.name|lower }}" 
+                                        data-use="{{ i }}">
+                                    {{ i + 1 }}
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Habilidades Diárias (Geradas Dinamicamente) -->
+                        {% if character.abilities and character.abilities|length > 0 %}
+                            {% for ability_name, uses in character.abilities.items() %}
+                            <div class="mb-3">
+                                <label class="form-label">{{ ability_name|replace('_', ' ')|capitalize }}</label>
+                                <div class="d-flex">
+                                    {% for i in range(uses|length) %}
+                                    <button class="btn btn-outline-primary ability-use me-1" 
+                                            data-character="{{ character.name|lower }}" 
+                                            data-ability="{{ ability_name }}" 
+                                            data-use="{{ i }}">
+                                        {{ i + 1 }}
+                                    </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <!-- Anotações -->
+                        <div class="mb-3">
+                            <label for="{{ character.name|lower }}Notes" class="form-label">Anotações</label>
+                            <textarea class="form-control" id="{{ character.name|lower }}Notes" rows="2" placeholder="Magias preparadas, habilidades, etc...">{{ character.notes }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Botão para adicionar novo personagem -->
+        <div class="row mt-3 mb-5">
+            <div class="col-12 text-center">
+                <a href="{{ url_for('new_character') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-person-plus"></i> Adicionar Novo Personagem
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script>
+        // Objeto para armazenar todos os dados da aplicação
+        let data = {
+            session: {
+                number: 1,
+                date: new Date().toISOString().split('T')[0],
+                floorName: "",
+                notes: ""
+            },
+            history: [],
+            characters: {}
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Carregar dados do banco de dados
+            loadDataFromServer();
+            
+            // Configurar listeners para todos os elementos interativos
+            setupEventListeners();
+        });
+
+        // Função para carregar dados do servidor
+        function loadDataFromServer() {
+            // Mostrar indicador de carregamento
+            const serverMessage = document.getElementById('serverMessage');
+            serverMessage.textContent = "Carregando dados...";
+            serverMessage.classList.remove('d-none', 'alert-success', 'alert-danger');
+            serverMessage.classList.add('alert-info');
+            
+            // Fazer requisição para o endpoint de dados
+            fetch('/api/data')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao carregar dados do servidor');
+                    }
+                    return response.json();
+                })
+                .then(result => {
+                    if (result.success && result.data && Object.keys(result.data).length > 0) {
+                        // Atualizar o objeto de dados com os dados do servidor
+                        data = result.data;
+                        
+                        // Inicializar a interface com os dados carregados
+                        initializeInterface();
+                        
+                        // Esconder a mensagem após um breve período
+                        serverMessage.textContent = "Dados carregados com sucesso!";
+                        serverMessage.classList.remove('alert-info', 'alert-danger');
+                        serverMessage.classList.add('alert-success');
+                        
+                        setTimeout(() => {
+                            serverMessage.classList.add('d-none');
+                        }, 3000);
+                    } else {
+                        // Se não houver dados, inicializar com os dados padrão
+                        initializeInterface();
+                        serverMessage.classList.add('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar dados:', error);
+                    
+                    // Mostrar mensagem de erro
+                    serverMessage.textContent = "Erro ao carregar dados. Usando dados padrão.";
+                    serverMessage.classList.remove('alert-info', 'alert-success');
+                    serverMessage.classList.add('alert-danger');
+                    
+                    // Inicializar com os dados padrão
+                    initializeInterface();
+                    
+                    setTimeout(() => {
+                        serverMessage.classList.add('d-none');
+                    }, 5000);
+                });
+        }
+
+        // Função para configurar todos os event listeners
+        function setupEventListeners() {
+            // Botões de ação principal
+            document.getElementById('saveDataBtn').addEventListener('click', saveDataToFile);
+            document.getElementById('newSessionBtn').addEventListener('click', startNewSession);
+            document.getElementById('updateServerDataBtn').addEventListener('click', updateServerData);
+            document.getElementById('longRestBtn').addEventListener('click', performLongRest);
+            
+            // Seletor de histórico
+            document.getElementById('sessionHistory').addEventListener('change', showHistorySession);
+            
+            // Botão para carregar sessão do histórico
+            document.getElementById('loadSessionBtn').addEventListener('click', loadHistorySession);
+            
+            // Campos da sessão atual
+            document.getElementById('sessionNumber').addEventListener('change', updateSessionData);
+            document.getElementById('sessionDate').addEventListener('change', updateSessionData);
+            document.getElementById('floorName').addEventListener('input', updateSessionData);
+            document.getElementById('sessionNotes').addEventListener('input', updateSessionData);
+            
+            // Configurar listeners para slots de magia e habilidades
+            setupDynamicListeners();
+        }
+
+        // Função para configurar listeners para elementos dinâmicos
+        function setupDynamicListeners() {
+            // Slots de magia
+            document.querySelectorAll('.spell-slot').forEach(button => {
+                button.addEventListener('click', function() {
+                    toggleSpellSlot(this);
+                });
+            });
+            
+            // Usos da pedra de armazenamento
+            document.querySelectorAll('.spell-stone-use').forEach(button => {
+                button.addEventListener('click', function() {
+                    toggleSpellStoneUse(this);
+                });
+            });
+            
+            // Usos de habilidades
+            document.querySelectorAll('.ability-use').forEach(button => {
+                button.addEventListener('click', function() {
+                    toggleAbilityUse(this);
+                });
+            });
+            
+            // Campos de personagem
+            document.querySelectorAll('[id$="HP"], [id$="AC"]').forEach(input => {
+                input.addEventListener('change', function() {
+                    updateCharacterData(this);
+                });
+            });
+            
+            // Checkboxes de inspiração
+            document.querySelectorAll('[id$="Inspiration"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateCharacterData(this);
+                });
+            });
+            
+            // Campos de texto de anotações
+            document.querySelectorAll('[id$="Notes"]').forEach(textarea => {
+                textarea.addEventListener('input', function() {
+                    updateCharacterData(this);
+                });
+            });
+            
+            // Campos de nome da magia da pedra
+            document.querySelectorAll('[id$="SpellStoneName"]').forEach(input => {
+                input.addEventListener('input', function() {
+                    updateSpellStoneName(this);
+                });
+            });
+        }
+
+        // Função para inicializar a interface com os dados carregados
+        function initializeInterface() {
+            // Preencher os campos da sessão
+            document.getElementById('sessionNumber').value = data.session.number;
+            document.getElementById('sessionDate').value = data.session.date;
+            document.getElementById('floorName').value = data.session.floorName;
+            document.getElementById('sessionNotes').value = data.session.notes;
+            
+            // Preencher o seletor de histórico
+            const historySelect = document.getElementById('sessionHistory');
+            
+            // Limpar opções existentes (exceto a primeira)
+            while (historySelect.options.length > 1) {
+                historySelect.remove(1);
+            }
+            
+            // Adicionar opções do histórico
+            if (data.history && data.history.length > 0) {
+                data.history.forEach(session => {
+                    const option = document.createElement('option');
+                    option.value = session.number;
+                    
+                    // Formatar a data para exibição
+                    let displayDate = '';
+                    if (session.date) {
+                        const dateParts = session.date.split('-');
+                        if (dateParts.length === 3) {
+                            displayDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+                        } else {
+                            displayDate = session.date;
+                        }
+                    }
+                    
+                    option.textContent = `Sessão ${session.number} - ${displayDate} - ${session.floorName || 'Sem nome'}`;
+                    option.dataset.sessionData = JSON.stringify(session);
+                    historySelect.appendChild(option);
+                });
+            }
+            
+            // Atualizar os dados dos personagens na interface
+            updateCharactersUI();
+        }
+
+        // Função para atualizar a interface dos personagens
+        function updateCharactersUI() {
+            // Esta função seria usada para atualizar dinamicamente os personagens,
+            // mas como estamos usando renderização do lado do servidor para os cards,
+            // ela não é necessária para a implementação atual.
+            // Mantida para possível uso futuro com AJAX.
+        }
+
+        // Função para alternar o estado de um slot de magia
+        function toggleSpellSlot(button) {
+            const character = button.dataset.character;
+            const level = button.dataset.level;
+            const slot = parseInt(button.dataset.slot);
+            const levelKey = `level${level}`;
+            
+            // Verificar se o personagem e o nível existem nos dados
+            if (data.characters[character] && data.characters[character].slots && data.characters[character].slots[levelKey]) {
+                // Alternar o estado do slot
+                data.characters[character].slots[levelKey][slot] = !data.characters[character].slots[levelKey][slot];
+                
+                // Atualizar a aparência do botão
+                if (data.characters[character].slots[levelKey][slot]) {
+                    button.classList.remove('btn-outline-success');
+                    button.classList.add('btn-success');
+                } else {
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-outline-success');
+                }
+            }
+        }
+
+        // Função para alternar o estado de um uso da pedra de armazenamento
+        function toggleSpellStoneUse(button) {
+            const character = button.dataset.character;
+            const use = parseInt(button.dataset.use);
+            
+            // Verificar se o personagem tem pedra de armazenamento
+            if (data.characters[character] && data.characters[character].slots && data.characters[character].slots.spellStone) {
+                // Alternar o estado do uso
+                data.characters[character].slots.spellStone.uses[use] = !data.characters[character].slots.spellStone.uses[use];
+                
+                // Atualizar a aparência do botão
+                if (data.characters[character].slots.spellStone.uses[use]) {
+                    button.classList.remove('btn-outline-info');
+                    button.classList.add('btn-info');
+                } else {
+                    button.classList.remove('btn-info');
+                    button.classList.add('btn-outline-info');
+                }
+            }
+        }
+
+        // Função para alternar o estado de um uso de habilidade
+        function toggleAbilityUse(button) {
+            const character = button.dataset.character;
+            const ability = button.dataset.ability;
+            const use = parseInt(button.dataset.use);
+            
+            // Verificar se o personagem e a habilidade existem nos dados
+            if (data.characters[character] && data.characters[character].abilities && data.characters[character].abilities[ability]) {
+                // Alternar o estado do uso
+                data.characters[character].abilities[ability][use] = !data.characters[character].abilities[ability][use];
+                
+                // Atualizar a aparência do botão
+                if (data.characters[character].abilities[ability][use]) {
+                    button.classList.remove('btn-outline-primary');
+                    button.classList.add('btn-primary');
+                } else {
+                    button.classList.remove('btn-primary');
+                    button.classList.add('btn-outline-primary');
+                }
+            }
+        }
+
+        // Função para atualizar o nome da magia da pedra de armazenamento
+        function updateSpellStoneName(input) {
+            const character = input.id.replace('SpellStoneName', '');
+            
+            // Verificar se o personagem tem pedra de armazenamento
+            if (data.characters[character] && data.characters[character].slots && data.characters[character].slots.spellStone) {
+                // Atualizar o nome da magia
+                data.characters[character].slots.spellStone.spellName = input.value;
+            }
+        }
+
+        // Função para atualizar os dados de um personagem
+        function updateCharacterData(element) {
+            // Extrair o nome do personagem do ID do elemento
+            const idParts = element.id.match(/^([a-z]+)(HP|AC|Inspiration|Notes)$/i);
+            
+            if (idParts && idParts.length === 3) {
+                const character = idParts[1];
+                const field = idParts[2];
+                
+                // Verificar se o personagem existe nos dados
+                if (data.characters[character]) {
+                    // Atualizar o campo apropriado
+                    switch (field) {
+                        case 'HP':
+                            data.characters[character].hp = parseInt(element.value);
+                            break;
+                        case 'AC':
+                            data.characters[character].ac = parseInt(element.value);
+                            break;
+                        case 'Inspiration':
+                            data.characters[character].inspiration = element.checked;
+                            break;
+                        case 'Notes':
+                            data.characters[character].notes = element.value;
+                            break;
+                    }
+                }
+            }
+        }
+
+        // Função para atualizar os dados da sessão
+        function updateSessionData() {
+            data.session.number = parseInt(document.getElementById('sessionNumber').value);
+            data.session.date = document.getElementById('sessionDate').value;
+            data.session.floorName = document.getElementById('floorName').value;
+            data.session.notes = document.getElementById('sessionNotes').value;
+        }
+
+        // Função para salvar os dados em um arquivo
+        function saveDataToFile() {
+            // Criar um objeto Blob com os dados
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            
+            // Criar um link para download
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `rpg_session_${data.session.number}_${data.session.date || 'sem_data'}.json`;
+            
+            // Simular um clique no link
+            a.click();
+            
+            // Liberar o objeto URL
+            URL.revokeObjectURL(a.href);
+        }
+
+        // Função para iniciar uma nova sessão
+        function startNewSession() {
+            if (confirm('Tem certeza que deseja iniciar uma nova sessão? Os dados da sessão atual serão salvos no histórico.')) {
+                // Incrementar o número da sessão
+                data.session.number++;
+                
+                // Atualizar a data para a data atual
+                data.session.date = new Date().toISOString().split('T')[0];
+                
+                // Limpar os campos de texto
+                data.session.floorName = '';
+                data.session.notes = '';
+                
+                // Atualizar a interface
+                document.getElementById('sessionNumber').value = data.session.number;
+                document.getElementById('sessionDate').value = data.session.date;
+                document.getElementById('floorName').value = '';
+                document.getElementById('sessionNotes').value = '';
+                
+                // Mostrar mensagem de sucesso
+                const serverMessage = document.getElementById('serverMessage');
+                serverMessage.textContent = `Nova sessão iniciada: Sessão ${data.session.number}`;
+                serverMessage.classList.remove('d-none', 'alert-danger', 'alert-info');
+                serverMessage.classList.add('alert-success');
+                
+                setTimeout(() => {
+                    serverMessage.classList.add('d-none');
+                }, 3000);
+            }
+        }
+
+        // Função para atualizar os dados no servidor
+        function updateServerData() {
+            // Mostrar indicador de carregamento
+            const serverMessage = document.getElementById('serverMessage');
+            serverMessage.textContent = "Atualizando dados no servidor...";
+            serverMessage.classList.remove('d-none', 'alert-success', 'alert-danger');
+            serverMessage.classList.add('alert-info');
+            
+            // Fazer requisição para o endpoint de dados
+            fetch('/api/data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao atualizar dados no servidor');
+                }
+                return response.json();
+            })
+            .then(result => {
+                if (result.success) {
+                    // Mostrar mensagem de sucesso
+                    serverMessage.textContent = "Dados atualizados com sucesso!";
+                    serverMessage.classList.remove('alert-info', 'alert-danger');
+                    serverMessage.classList.add('alert-success');
+                } else {
+                    // Mostrar mensagem de erro
+                    serverMessage.textContent = `Erro ao atualizar dados: ${result.message}`;
+                    serverMessage.classList.remove('alert-info', 'alert-success');
+                    serverMessage.classList.add('alert-danger');
+                }
+                
+                setTimeout(() => {
+                    serverMessage.classList.add('d-none');
+                }, 3000);
+            })
+            .catch(error => {
+                console.error('Erro ao atualizar dados:', error);
+                
+                // Mostrar mensagem de erro
+                serverMessage.textContent = `Erro ao atualizar dados: ${error.message}`;
+                serverMessage.classList.remove('alert-info', 'alert-success');
+                serverMessage.classList.add('alert-danger');
+                
+                setTimeout(() => {
+                    serverMessage.classList.add('d-none');
+                }, 5000);
+            });
+        }
+
+        // Função para realizar um descanso longo
+        function performLongRest() {
+            if (confirm('Tem certeza que deseja realizar um descanso longo? Todos os slots de magia e habilidades serão restaurados.')) {
+                // Percorrer todos os personagens
+                for (const character in data.characters) {
+                    // Restaurar slots de magia
+                    if (data.characters[character].slots) {
+                        for (const level in data.characters[character].slots) {
+                            // Verificar se é um array (para evitar a pedra de armazenamento)
+                            if (Array.isArray(data.characters[character].slots[level])) {
+                                // Restaurar todos os slots
+                                data.characters[character].slots[level] = data.characters[character].slots[level].map(() => false);
+                            } else if (level === 'spellStone' && data.characters[character].slots[level].uses) {
+                                // Restaurar usos da pedra de armazenamento
+                                data.characters[character].slots[level].uses = data.characters[character].slots[level].uses.map(() => false);
+                            }
+                        }
+                    }
+                    
+                    // Restaurar habilidades
+                    if (data.characters[character].abilities) {
+                        for (const ability in data.characters[character].abilities) {
+                            // Restaurar todos os usos
+                            data.characters[character].abilities[ability] = data.characters[character].abilities[ability].map(() => false);
+                        }
+                    }
+                }
+                
+                // Atualizar a interface
+                document.querySelectorAll('.spell-slot, .spell-stone-use, .ability-use').forEach(button => {
+                    button.classList.remove('btn-success', 'btn-info', 'btn-primary');
+                    
+                    if (button.classList.contains('spell-slot')) {
+                        button.classList.add('btn-outline-success');
+                    } else if (button.classList.contains('spell-stone-use')) {
+                        button.classList.add('btn-outline-info');
+                    } else if (button.classList.contains('ability-use')) {
+                        button.classList.add('btn-outline-primary');
+                    }
+                });
+                
+                // Mostrar mensagem de sucesso
+                const serverMessage = document.getElementById('serverMessage');
+                serverMessage.textContent = "Descanso longo realizado com sucesso!";
+                serverMessage.classList.remove('d-none', 'alert-danger', 'alert-info');
+                serverMessage.classList.add('alert-success');
+                
+                setTimeout(() => {
+                    serverMessage.classList.add('d-none');
+                }, 3000);
+            }
+        }
+
+        // Função para exibir os detalhes de uma sessão do histórico
+        function showHistorySession() {
+            const historySelect = document.getElementById('sessionHistory');
+            const selectedOption = historySelect.options[historySelect.selectedIndex];
+            
+            // Verificar se uma sessão foi selecionada
+            if (selectedOption.value) {
+                // Obter os dados da sessão
+                const sessionData = JSON.parse(selectedOption.dataset.sessionData);
+                
+                // Preencher o modal com os dados da sessão
+                document.getElementById('modalSessionNumber').textContent = sessionData.number;
+                
+                // Formatar a data para exibição
+                let displayDate = '';
+                if (sessionData.date) {
+                    const dateParts = sessionData.date.split('-');
+                    if (dateParts.length === 3) {
+                        displayDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+                    } else {
+                        displayDate = sessionData.date;
+                    }
+                }
+                
+                document.getElementById('modalSessionDate').textContent = displayDate;
+                document.getElementById('modalFloorName').textContent = sessionData.floorName || 'Não especificado';
+                document.getElementById('modalSessionNotes').textContent = sessionData.notes || 'Sem anotações';
+                
+                // Exibir o modal
+                const modal = new bootstrap.Modal(document.getElementById('historySessionModal'));
+                modal.show();
+            }
+        }
+
+        // Função para carregar uma sessão do histórico
+        function loadHistorySession() {
+            const historySelect = document.getElementById('sessionHistory');
+            const selectedOption = historySelect.options[historySelect.selectedIndex];
+            
+            // Verificar se uma sessão foi selecionada
+            if (selectedOption.value) {
+                // Obter os dados da sessão
+                const sessionData = JSON.parse(selectedOption.dataset.sessionData);
+                
+                // Atualizar os dados da sessão atual
+                data.session.number = sessionData.number;
+                data.session.date = sessionData.date;
+                data.session.floorName = sessionData.floorName;
+                data.session.notes = sessionData.notes;
+                
+                // Atualizar a interface
+                document.getElementById('sessionNumber').value = sessionData.number;
+                document.getElementById('sessionDate').value = sessionData.date;
+                document.getElementById('floorName').value = sessionData.floorName || '';
+                document.getElementById('sessionNotes').value = sessionData.notes || '';
+                
+                // Fechar o modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('historySessionModal'));
+                modal.hide();
+                
+                // Mostrar mensagem de sucesso
+                const serverMessage = document.getElementById('serverMessage');
+                serverMessage.textContent = `Sessão ${sessionData.number} carregada com sucesso!`;
+                serverMessage.classList.remove('d-none', 'alert-danger', 'alert-info');
+                serverMessage.classList.add('alert-success');
+                
+                setTimeout(() => {
+                    serverMessage.classList.add('d-none');
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
