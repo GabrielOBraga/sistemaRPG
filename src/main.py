@@ -11,7 +11,9 @@ from src.models import Character, Session, HistorySession, SessionLocal, Base, e
 
 # Criar a aplicação Flask
 app = Flask(__name__)
-app.secret_key = 'rpg_panel_secret_key'  # Necessário para flash messages
+database_url = os.environ.get('SECRET_KEY')
+
+#app.secret_key = 'rpg_panel_secret_key'  # Necessário para flash messages
 
 # Criar as tabelas no banco de dados
 Base.metadata.create_all(bind=engine)
