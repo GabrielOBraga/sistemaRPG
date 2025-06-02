@@ -40,28 +40,9 @@ class Session(Base):
     date = Column(Date, default=datetime.date.today)
     notes = Column(String)
 
-    # Relacionamento com HistorySession (uma sessão pode estar em múltiplos históricos)
-    history_entries = relationship("HistorySession", back_populates="session")
-
     def __repr__(self):
         return f"<Session(number={self.number}, floorName='{self.floorName}', date='{self.date}')>"
 
-class HistorySession(Base):
-    """Modelo para registrar o histórico de uma sessão específica."""
-    __tablename__ = 'history_sessions'
-
-    id = Column(Integer, primary_key=True)
-    # Chave estrangeira referenciando a tabela 'sessions'
-    session_id = Column(Integer, ForeignKey('sessions.id'), nullable=False)
-
-    # Relacionamento com Session (cada entrada de histórico pertence a uma sessão)
-    # 'lazy=joined' pode ser útil para carregar a sessão junto com o histórico
-    session = relationship("Session", back_populates="history_entries", lazy='joined')
-
-    def __repr__(self):
-        # Inclui informações da sessão relacionada para melhor representação
-        session_info = f"Session {self.session.number}" if self.session else "No Session Linked"
-        return f"<HistorySession(id={self.id}, session='{session_info}')>"
 
 import os
 

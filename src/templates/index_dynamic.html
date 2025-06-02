@@ -13,12 +13,17 @@
     <!-- Bootstrap JS Bundle com Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body>
+<body class="animated-bg">
     <div class="container-fluid py-4">
-        <h1 class="text-center mb-4">Painel de Sessão de RPG (D&D 5e)</h1>
+        
+        <div class="card mb-4 paperStyle">
+            
+            <h1 class="text-center mb-4">RPG (D&D 5e)</h1>
+            <h1 class="text-center mb-4">A Torre do Mago Louco (Undermountain)</h1>
+        </div>
         
         <!-- Painel da Sessão -->
-        <div class="card mb-4">
+        <div class="card mb-4 ">
             <div class="card-header bg-dark text-white">
                 <h2 class="h4 mb-0">Painel da Sessão</h2>
             </div>
@@ -116,11 +121,14 @@
         
         <!-- Cartões de Personagens (Gerados Dinamicamente) -->
         <div class="row" id="charactersContainer">
+
             {% for character in characters %}
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card character-card">
-                    <div class="card-header bg-{{ character.card_color|default('secondary') }} text-{{ character.text_color|default('white') }} d-flex justify-content-between align-items-center">
-                        <h3 class="h5 mb-0">{{ character.name }}</h3>
+
+            
+            <div class="col-lg-4 col-md-6 mb-4 ">
+                <div class="card character-card ">
+                    <div class="paperStyle card-header bg-{{ character.card_color }} text-{{ character.text_color|default('white') }} d-flex justify-content-between align-items-center">
+                        <h3 class="h5 mb-0"> {{ character.name }}</h3>
                         <a href="{{ url_for('edit_character', character_id=character.id) }}" class="btn btn-sm btn-light">
                             <i class="bi bi-pencil-square"></i> Editar
                         </a>
@@ -147,40 +155,51 @@
                         <!-- Slots de Magia (Gerados Dinamicamente) -->
                         {% if character.slots and character.slots|length > 0 %}
                         <div class="mb-3">
-                            <label class="form-label">Slots de Magia</label>
+                            <small class="form-label">Slots de Magia</small>
                             <div class="spell-slots-container">
                                 {% for level_name, slots in character.slots.items() %}
-                                <div class="mb-2">
-                                    <small>{{ level_name|replace('level', 'Nível ')|capitalize }}:</small>
-                                    <div class="d-flex flex-wrap">
-                                        {% for i in range(slots|length) %}
-                                        <button class="btn btn-outline-success spell-slot me-1 mb-1" 
-                                                data-character="{{ character.name|lower }}" 
-                                                data-level="{{ level_name|replace('level', '') }}" 
-                                                data-slot="{{ i }}">
-                                            {% if level_name.startswith('level') %}
-                                                {{ i + 1 }}
-                                            {% else %}
-                                                {{ level_name }}
-                                            {% endif %}
-                                        </button>
-                                        {% endfor %}
+                                {% if level_name == 'spellStone' %}
+                                    <!-- Ignorar a pedra de armazenamento aqui, será tratada separadamente -->
+                                {% else %}
+                                    <div class="mb-2">
+                                        <small>{{ level_name|replace('level', 'Nível ')|capitalize }}:</small>
+                                        <div class="d-flex flex-wrap">
+                                            {% for i in range(slots|length) %}
+                                            <button class="btn btn-outline-success spell-slot me-1 mb-1" 
+                                                    data-character="{{ character.name|lower }}" 
+                                                    data-level="{{ level_name|replace('level', '') }}" 
+                                                    data-slot="{{ i }}">
+                                                {% if level_name.startswith('level') %}
+                                                    {{ i + 1 }}
+                                                {% else %}
+                                                    {{ level_name }}
+                                                {% endif %}
+                                            </button>
+                                            {% endfor %}
+                                        </div>
                                     </div>
-                                </div>
+                                {% endif %}
                                 {% endfor %}
                             </div>
                         </div>
                         {% endif %}
                         
                         <!-- Pedra de Armazenamento de Magia (Específico para Sinbad) -->
-                        {% if character.spellStone is defined %}
+
+                        {% if character.spellStone is not none %}
                         <div class="mb-3">
-                            <label class="form-label">Pedra de Armazenamento de Magia</label>
+                            <small class="form-label">Pedra de Armazenamento de Magia</small>
                             <div class="input-group mb-2">
                                 <input type="text" class="form-control" id="{{ character.name|lower }}SpellStoneName" placeholder="Nome da magia" value="{{ character.spellStone.spellName }}">
                             </div>
                             <div class="d-flex flex-wrap">
+                                <div class="d-flex flex-wrap">
                                 {% for i in range(character.spellStone.uses|length) %}
+                                {% if i == 5 %}
+                                    </div>
+                                    <div class="d-flex flex-wrap">
+                                {% endif %}
+                                
                                 <button class="btn btn-outline-info spell-stone-use me-1 mb-1" 
                                         data-character="{{ character.name|lower }}" 
                                         data-use="{{ i }}">
@@ -188,14 +207,17 @@
                                 </button>
                                 {% endfor %}
                             </div>
+                            </div>
                         </div>
                         {% endif %}
                         
                         <!-- Habilidades Diárias (Geradas Dinamicamente) -->
                         {% if character.abilities and character.abilities|length > 0 %}
+                        <strong class="form-label">Habilidades Diárias ou Únicas </strong>
+
                             {% for ability_name, uses in character.abilities.items() %}
                             <div class="mb-3">
-                                <label class="form-label">{{ ability_name|replace('_', ' ')|capitalize }}</label>
+                                <small class="form-label">{{ ability_name|replace('_', ' ')|regex_replace('([A-Z])', ' \\1')|title }}</small>
                                 <div class="d-flex">
                                     {% for i in range(uses|length) %}
                                     <button class="btn btn-outline-primary ability-use me-1" 
@@ -435,6 +457,16 @@
             // Mantida para possível uso futuro com AJAX.
         }
 
+        // Função para inverter o camelCase
+        function fromCamelCase(camel) {
+            if (!camel) return '';
+            // Insere espaço antes de cada letra maiúscula, exceto a primeira
+            let spaced = camel.replace(/([A-Z])/g, ' $1');
+            // Capitaliza a primeira letra
+            return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+        }
+
+
         // Função para alternar o estado de um slot de magia
         function toggleSpellSlot(button) {
             const character = button.dataset.character;
@@ -570,6 +602,23 @@
         // Função para iniciar uma nova sessão
         function startNewSession() {
             if (confirm('Tem certeza que deseja iniciar uma nova sessão? Os dados da sessão atual serão salvos no histórico.')) {
+                
+                // Salvar a sessão atual no histórico
+                data.history.push({
+                    number: data.session.number,
+                    date: data.session.date,
+                    floorName: data.session.floorName,
+                    notes: data.session.notes
+                });
+                
+                // Atualizar o drown do histórico
+                const historySelect = document.getElementById('sessionHistory');
+                const option = document.createElement('option');
+                option.value = data.history[data.history.length - 1].number;
+                option.textContent = `Sessão ${data.history[data.history.length - 1].number} - ${data.session.date} - ${data.session.floorName || 'Sem nome'}`;
+                option.dataset.sessionData = JSON.stringify(data.history[data.history.length - 1]);
+                historySelect.appendChild(option);
+
                 // Incrementar o número da sessão
                 data.session.number++;
                 

@@ -59,12 +59,12 @@
                         <div class="col-md-6">
                             <label for="cardColor" class="form-label">Cor do Card</label>
                             <select class="form-select" id="cardColor" name="card_color">
-                                <option value="primary" {% if character.name.lower() == 'sinbad' %}selected{% endif %}>Azul (Artífice)</option>
-                                <option value="info" {% if character.name.lower() == 'melissa' %}selected{% endif %}>Azul Claro (Ladino)</option>
-                                <option value="success" {% if character.name.lower() == 'duromak' %}selected{% endif %}>Verde (Bárbaro/Druida)</option>
-                                <option value="warning" {% if character.name.lower() == 'escanor' %}selected{% endif %}>Amarelo (Clérigo)</option>
-                                <option value="danger" {% if character.name.lower() == 'emberith' %}selected{% endif %}>Vermelho (Mago)</option>
-                                <option value="secondary" {% if character.name.lower() == 'milenaus' %}selected{% endif %}>Cinza (Guerreiro)</option>
+                                <option value="primary" {% if character.name.lower() == 'Sinbad' %}selected{% endif %}>Azul (Artífice)</option>
+                                <option value="info" {% if character.name.lower() == 'Melissa' %}selected{% endif %}>Azul Claro (Ladino)</option>
+                                <option value="success" {% if character.name.lower() == 'Duromak' %}selected{% endif %}>Verde (Bárbaro/Druida)</option>
+                                <option value="warning" {% if character.name.lower() == 'Escanor' %}selected{% endif %}>Amarelo (Clérigo)</option>
+                                <option value="danger" {% if character.name.lower() == 'Emberith' %}selected{% endif %}>Vermelho (Mago)</option>
+                                <option value="secondary" {% if character.name.lower() == 'Milenaus' %}selected{% endif %}>Cinza (Guerreiro)</option>
                                 <option value="dark">Preto</option>
                             </select>
                         </div>
@@ -112,7 +112,11 @@
                     
                     <div id="spellLevelsList" class="mb-4">
                         <!-- Aqui serão listados os níveis de magia adicionados -->
+
+
                         <p class="text-muted">Nenhum nível de magia adicionado.</p>
+                         <!-- Slots de Magia (Gerados Dinamicamente) -->
+                        
                     </div>
                     
                     <hr>
@@ -180,9 +184,9 @@
                     </div>
                     
                     <!-- Campos ocultos para armazenar os dados JSON -->
-                    <input type="hidden" id="slotsJSON" name="slots_json" value="{{ character.slots|tojson }}">
-                    <input type="hidden" id="abilitiesJSON" name="abilities_json" value="{{ character.abilities|tojson }}">
-                    <input type="hidden" id="spellStoneJSON" name="spell_stone_json" value="{{ character.slots.spellStone|tojson if character.slots.spellStone else '{}' }}">
+                    <input type="hidden" id="slotsJSON" name="slots_json" value='{{ character.slots|tojson|safe }}'>
+                    <input type="hidden" id="abilitiesJSON" name="abilities_json" value='{{ character.abilities|tojson|safe }}'>
+                    <input type="hidden" id="spellStoneJSON" name="spell_stone_json" value='{{ character.slots.spellStone|tojson|safe if character.slots.spellStone else "{}" }}'>
                 </form>
             </div>
         </div>
@@ -237,6 +241,7 @@
         
         // Função para carregar os dados existentes do personagem
         function loadExistingData() {
+
             // Carregar os slots de magia existentes
             const slotsData = JSON.parse(document.getElementById('slotsJSON').value);
             
@@ -515,7 +520,7 @@
             
             levelElements.forEach(element => {
                 const level = element.getAttribute('data-level');
-                const quantity = parseInt(element.querySelector('span').textContent.match(/(\d+)/)[0]);
+                const quantity = parseInt(element.querySelector('span').textContent.match(/:\s*(\d+)\s+slots/)[1]);
                 
                 // Criar um array de slots (todos inicialmente false)
                 slots[level] = Array(quantity).fill(false);

@@ -368,10 +368,12 @@
             
             levelElements.forEach(element => {
                 const level = element.getAttribute('data-level');
-                const quantity = parseInt(element.querySelector('span').textContent.match(/(\d+)/)[0]);
+                const quantity = parseInt(element.querySelector('span').textContent.match(/:\s*(\d+)\s+slots/)[1]);
                 
                 // Criar um array de slots (todos inicialmente false)
                 slots[level] = Array(quantity).fill(false);
+                console.log(slots);
+
             });
             
             // Atualizar o campo oculto
