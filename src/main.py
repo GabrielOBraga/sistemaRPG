@@ -53,12 +53,12 @@ def index():
         for char in characters:
             # Definir a cor do card com base no nome ou classe do personagem (lógica simplificada)
             card_colors = {
-                'Melissa': 'info',
-                'Escanor': 'warning',
-                'Lord': 'primary',
-                'Emberith': 'danger',
-                'Duromak': 'success',
-                'Milenaus': 'secondary'
+                'melissa': 'info',
+                'escanor': 'warning',
+                'lord': 'primary',
+                'emberith': 'danger',
+                'duromak': 'success',
+                'milenaus': 'secondary'
             }
             
             # Obter a cor do card ou usar secondary como padrão
@@ -388,21 +388,11 @@ def api_data():
             
             # Atualizar os personagens
             characters_data = data.get('characters', {})
+
             for char_name, char_data in characters_data.items():
                 # Buscar o personagem ou criar um novo
                 character = db.query(Character).filter_by(name=char_name).first()
-                if not character:
-                    character = Character(
-                        name=char_name,
-                        hp=char_data.get('hp', 0),
-                        ac=char_data.get('ac', 0),
-                        inspiration=char_data.get('inspiration', False),
-                        slots=char_data.get('slots', {}),
-                        abilities=char_data.get('abilities', {}),
-                        notes=char_data.get('notes', '')
-                    )
-                    db.add(character)
-                else:
+                if character:
                     character.hp = char_data.get('hp', character.hp)
                     character.ac = char_data.get('ac', character.ac)
                     character.inspiration = char_data.get('inspiration', character.inspiration)
@@ -429,13 +419,6 @@ def api_data():
                     db.add(sessionH)
                     db.flush()  # Flush para garantir que o ID seja gerado antes de criar o histórico
   
-                else:
-                    # Atualizar sessão existente
-                    session.number=session_info.get('number')
-                    session.date=parse_date(session_info.get('date'))
-                    session.floorName=session_info.get('floorName')
-                    session.notes=session_info.get('notes')
-
             # Salvar as alterações
             db.commit()
             
