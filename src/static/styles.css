@@ -148,6 +148,24 @@ body {
     transition: all 0.3s ease;
 }
 
+/* Padronização dos botões principais */
+.session-action-btn {
+    min-width: 220px;
+    max-width: 100%;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    padding: 12px 0;
+}
+
+@media (max-width: 768px) {
+    .session-action-btn {
+        min-width: 100%;
+        font-size: 1rem;
+        padding: 10px 0;
+    }
+}
+
+/* Estilos para o modo escuro */
 body.dark-mode {
     background-color: #181818 !important;
     color: #f1f1f1 !important;
