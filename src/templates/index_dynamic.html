@@ -27,6 +27,9 @@
             <div class="card-header bg-dark text-white">
                 <h2 class="h4 mb-0 text-center" >Painel da Sessão</h2>
                 <div class="text-end">
+                    <button id="toggleBgAnimBtn" class="btn btn-outline-secondary me-2" title="Ativar/Desativar animação de fundo">
+                        <i class="bi bi-pause-fill"></i>
+                    </button>
                     <button id="toggleDarkModeBtn" class="btn btn-dark">
                         <i class="bi bi-moon"></i> Modo Noturno
                     </button>
@@ -279,6 +282,8 @@
             
             // Configurar listeners para todos os elementos interativos
             setupEventListeners();
+
+             document.querySelector('.animated-bg').style.animationPlayState = 'running';
         });
 
         // Função para carregar dados do servidor
@@ -858,6 +863,18 @@
     document.getElementById('toggleDarkModeBtn').addEventListener('click', function() {
         localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
     });
+
+    document.getElementById('toggleBgAnimBtn').addEventListener('click', function() {
+        const bg = document.querySelector('.animated-bg');
+        if (bg.style.animationPlayState === 'paused') {
+            bg.style.animationPlayState = 'running';
+            this.innerHTML = '<i class="bi bi-pause-fill"></i>';
+        } else {
+            bg.style.animationPlayState = 'paused';
+            this.innerHTML = '<i class="bi bi-play-fill"></i>';
+        }
+    });
+
     </script>
 </body>
 </html>
