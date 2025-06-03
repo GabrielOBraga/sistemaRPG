@@ -190,3 +190,11 @@ body.dark-mode .bg-dark {
     filter: brightness(80%);
     color: #f1f1f1 !important;
 }
+
+body.dark-mode .btn-success,
+body.dark-mode .btn-info,
+body.dark-mode .btn-primary  {
+    color: #f1f1f1 !important;
+    border-color: #310707 !important;
+    background-color: #360e0e !important;
+}

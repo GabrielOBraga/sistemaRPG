@@ -171,7 +171,7 @@
                                         <small>{{ level_name|replace('level', 'Nível ')|capitalize }}:</small>
                                         <div class="d-flex flex-wrap">
                                             {% for i in range(slots|length) %}
-                                            <button class="btn btn-outline-success spell-slot me-1 mb-1" 
+                                            <button class="btn btn{{ '-outline' if slots[i] == False else '' }}-success spell-slot me-1 mb-1" 
                                                     data-character="{{ character.name|lower }}" 
                                                     data-level="{{ level_name|replace('level', '') }}" 
                                                     data-slot="{{ i }}">
@@ -206,7 +206,7 @@
                                     <div class="d-flex flex-wrap">
                                 {% endif %}
                                 
-                                <button class="btn btn-outline-info spell-stone-use me-1 mb-1" 
+                                <button class="btn btn{{ '-outline' if character.spellStone.uses[i] == False else '' }}-info spell-stone-use me-1 mb-1" 
                                         data-character="{{ character.name|lower }}" 
                                         data-use="{{ i }}">
                                     {{ i + 1 }}
@@ -226,7 +226,7 @@
                                 <small class="form-label">{{ ability_name|replace('_', ' ')|regex_replace('([A-Z])', ' \\1')|title }}</small>
                                 <div class="d-flex">
                                     {% for i in range(uses|length) %}
-                                    <button class="btn btn-outline-primary ability-use me-1" 
+                                    <button class="btn btn{{ '-outline' if uses[i] == False else '' }}-primary ability-use me-1" 
                                             data-character="{{ character.name|lower }}" 
                                             data-ability="{{ ability_name }}" 
                                             data-use="{{ i }}">
